@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model PhotoRestoreRecord {
+  id             Int      @id @default(autoincrement())
+
+  // 用户手机号
+  phone          String   @db.VarChar(20)
+
+  // 原始上传图 OSS URL
+  originalUrl    String   @db.Text
+
+  // 修复后图 OSS URL
+  restoredUrl    String?  @db.Text
+
+  // 任务状态：pending / processing / success / failed
+  status         String   @default("pending")
+
+  // Doubao 请求的 seedream 请求ID（可选）
+  requestId      String?  @db.VarChar(128)
+
+  // Doubao 模型生成返回的 JSON（可选，用于调试或日志）
+  responseJson   Json?
+
+  // 创建时间、更新时间
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
