@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重阳节AI诗歌创作 - 九九重阳·敬老思亲</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        /* Banner图片 */
+        .banner {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 50%, #ffd700 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner-content {
+            text-align: center;
+            color: white;
+            z-index: 2;
+            position: relative;
+        }
+
+        .banner-content h1 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 36px;
+            font-weight: 700;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+        }
+
+        .banner-content p {
+            font-size: 16px;
+            opacity: 0.95;
+            letter-spacing: 2px;
+        }
+
+        .banner-decoration {
+            position: absolute;
+            font-size: 80px;
+            opacity: 0.2;
+        }
+
+        .banner-decoration:nth-child(1) {
+            top: -20px;
+            left: 20px;
+            animation: float 6s infinite ease-in-out;
+        }
+
+        .banner-decoration:nth-child(2) {
+            bottom: -20px;
+            right: 20px;
+            animation: float 8s infinite ease-in-out 1s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 20px;
+        }
+
+        /* 步骤指示器 */
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: rgba(255,255,255,0.3);
+            z-index: 0;
+        }
+
+        .step-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .step-item.active .step-circle {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 4px 15px rgba(255,255,255,0.5);
+            transform: scale(1.1);
+        }
+
+        .step-item.completed .step-circle {
+            background: #4caf50;
+            color: white;
+        }
+
+        .step-label {
+            color: white;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .step-item.active .step-label {
+            opacity: 1;
+            font-weight: 500;
+        }
+
+        /* 页面切换 */
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 卡片容器 */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        /* 输入框样式 */
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* 元素标签 */
+        .tags-container {
+            margin-bottom: 25px;
+        }
+
+        .tags-label {
+            display: block;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tag {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .tag:hover {
+            background: #e8e8e8;
+            transform: translateY(-2px);
+        }
+
+        .tag.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9ff;
+        }
+
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 20px;
+            color: #667eea;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* 诗歌展示 */
+        .poem-display {
+            background: linear-gradient(to bottom, #fff9e6, #fffbf0);
+            padding: 30px;
+            border-radius: 16px;
+            border: 2px solid #f0e6d2;
+            margin-bottom: 25px;
+        }
+
+        .poem-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 24px;
+            color: #8b4513;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .poem-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 18px;
+            line-height: 2;
+            color: #333;
+            text-align: center;
+        }
+
+        .poem-verse {
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: verseFadeIn 0.6s ease forwards;
+        }
+
+        .poem-verse:nth-child(1) { animation-delay: 0.2s; }
+        .poem-verse:nth-child(2) { animation-delay: 0.4s; }
+        .poem-verse:nth-child(3) { animation-delay: 0.6s; }
+        .poem-verse:nth-child(4) { animation-delay: 0.8s; }
+
+        @keyframes verseFadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* AI图片展示 */
+        .ai-image-container {
+            margin-bottom: 25px;
+        }
+
+        .ai-image-preview {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .ai-image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ai-image-placeholder {
+            text-align: center;
+            color: #999;
+        }
+
+        .ai-image-placeholder i {
+            font-size: 60px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* 关键词展示 */
+        .keywords-box {
+            background: #f8f9ff;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .keywords-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .keywords-text {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 分享预览 */
+        .share-final {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            margin-bottom: 20px;
+        }
+
+        .share-image {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .share-image-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+        }
+
+        .share-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            text-align: center;
+        }
+
+        .share-content h2 {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 28px;
+            color: white;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .share-poem-box {
+            background: rgba(255,255,255,0.95);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .share-poem-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .share-footer-text {
+            color: white;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .share-info {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .share-info-item {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        /* 按钮组 */
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        /* 提示文本 */
+        .hint-text {
+            font-size: 13px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        /* 成功提示 */
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 响应式 */
+        @media (max-width: 480px) {
+            .banner {
+                height: 260px;
+            }
+
+            .banner-content h1 {
+                font-size: 28px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .share-image {
+                height: 400px;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Banner -->
+    <div class="banner">
+        <div class="banner-decoration">🌼</div>
+        <div class="banner-decoration">🍂</div>
+        <div class="banner-content">
+            <img src="banner_poem.jpg" width="100%">
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="content">
+            <!-- 步骤指示器 -->
+            <div class="step-indicator">
+                <div class="step-item active" id="stepIndicator1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">输入信息</div>
+                </div>
+                <div class="step-item" id="stepIndicator2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">生成图片</div>
+                </div>
+                <div class="step-item" id="stepIndicator3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">生成分享</div>
+                </div>
+            </div>
+
+            <!-- 步骤1: 输入手机号和关键词 -->
+            <div id="step1" class="page active">
+                <div class="card">
+                    <div class="input-group">
+                        <label for="phone">📱 手机号</label>
+                        <input type="tel" id="phone" placeholder="请输入您的手机号" maxlength="11">
+                        <div class="hint-text">用于保存您的创作记录</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="customText">✍️ 自定义内容（可选）</label>
+                        <textarea id="customText" placeholder="在这里输入您想表达的内容，比如对家人的思念、对长辈的祝福..."></textarea>
+                    </div>
+
+                    <div class="tags-container">
+                        <label class="tags-label">🏷️ 选择重阳元素（点击选择）</label>
+                        <div class="tags" id="elementTags">
+                            <div class="tag" data-element="菊花">🌼 菊花</div>
+                            <div class="tag" data-element="登高">⛰️ 登高</div>
+                            <div class="tag" data-element="茱萸">🌿 茱萸</div>
+                            <div class="tag" data-element="重阳糕">🍰 重阳糕</div>
+                            <div class="tag" data-element="敬老">👴 敬老</div>
+                            <div class="tag" data-element="思乡">🏠 思乡</div>
+                            <div class="tag" data-element="团圆">❤️ 团圆</div>
+                            <div class="tag" data-element="秋风">🍃 秋风</div>
+                            <div class="tag" data-element="明月">🌕 明月</div>
+                            <div class="tag" data-element="亲情">👨‍👩‍👧‍👦 亲情</div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generatePoem()">
+                        <i class="fas fa-magic"></i> AI创作诗歌
+                    </button>
+                </div>
+            </div>
+
+            <!-- 加载页: AI生成诗歌中 -->
+            <div id="loadingPoem" class="page">
+                <div class="card">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text" id="loadingPoemText">正在分析创作元素...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤2: 展示诗歌并生成AI图片 -->
+            <div id="step2" class="page">
+                <div class="card">
+                    <div class="poem-display">
+                        <div class="poem-title" id="poemTitle">重阳抒怀</div>
+                        <div class="poem-text" id="poemText"></div>
+                    </div>
+
+                    <div class="keywords-box">
+                        <div class="keywords-label">🎨 已为您生成图片关键词：</div>
+                        <div class="keywords-text" id="imageKeywords"></div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateAIImage()">
+                        <i class="fas fa-image"></i> 生成AI图片
+                    </button>
+                    <button class="btn btn-secondary" onclick="backToStep1()">
+                        <i class="fas fa-redo"></i> 重新创作
+                    </button>
+                </div>
+            </div>
+
+            <!-- 加载页: AI生成图片中 -->
+            <div id="loadingImage" class="page">
+                <div class="card">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text" id="loadingImageText">正在生成AI图片...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步骤3: 展示图片并生成分享页 -->
+            <div id="step3" class="page">
+                <div class="card">
+                    <div class="ai-image-container">
+                        <div class="ai-image-preview" id="aiImagePreview">
+                            <div class="ai-image-placeholder">
+                                <i class="fas fa-image"></i>
+                                <p>AI图片生成中...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="poem-display">
+                        <div class="poem-title" id="poemTitle2">重阳抒怀</div>
+                        <div class="poem-text" id="poemText2"></div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateSharePage()">
+                        <i class="fas fa-share-alt"></i> 生成分享页面
+                    </button>
+                    <button class="btn btn-secondary" onclick="regenerateImage()">
+                        <i class="fas fa-redo"></i> 重新生成图片
+                    </button>
+                </div>
+            </div>
+
+            <!-- 最终分享页 -->
+            <div id="step4" class="page">
+                <div class="card">
+                    <div class="success-message">
+                        ✅ 您的重阳诗歌分享页已生成！
+                    </div>
+
+                    <div class="share-final" id="shareFinalPreview">
+                        <div class="share-image">
+                            <img id="shareImageBg" class="share-image-bg" src="" alt="">
+                            <div class="share-content">
+                                <h2 id="shareTitle">重阳抒怀</h2>
+                                <div class="share-poem-box">
+                                    <div class="share-poem-text" id="sharePoemText"></div>
+                                </div>
+                                <div class="share-footer-text">
+                                    📅 <span id="shareTime"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="share-info">
+                            <div class="share-info-item">
+                                📱 手机号: <span id="sharePhone"></span>
+                            </div>
+                            <div class="share-info-item">
+                                🌾 祝您重阳节快乐，阖家幸福！
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="downloadShareImage()">
+                            <i class="fas fa-download"></i> 保存图片
+                        </button>
+                        <button class="btn btn-primary" onclick="copyShareLink()">
+                            <i class="fas fa-copy"></i> 复制链接
+                        </button>
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="createNewPoem()">
+                        <i class="fas fa-plus"></i> 创作新诗歌
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let selectedElements = [];
+        let currentPoem = null;
+        let currentImage = null;
+        let imageKeywords = '';
+
+        // 更新步骤指示器
+        function updateStepIndicator(currentStep) {
+            for (let i = 1; i <= 3; i++) {
+                const stepItem = document.getElementById('stepIndicator' + i);
+                stepItem.classList.remove('active', 'completed');
+                
+                if (i < currentStep) {
+                    stepItem.classList.add('completed');
+                } else if (i === currentStep) {
+                    stepItem.classList.add('active');
+                }
+            }
+        }
+
+        // 页面切换
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // 元素标签选择
+        document.getElementById('elementTags').addEventListener('click', (e) => {
+            if (e.target.classList.contains('tag')) {
+                const element = e.target.dataset.element;
+                if (e.target.classList.contains('selected')) {
+                    e.target.classList.remove('selected');
+                    selectedElements = selectedElements.filter(el => el !== element);
+                } else {
+                    e.target.classList.add('selected');
+                    selectedElements.push(element);
+                }
+            }
+        });
+
+        // 步骤1: 生成诗歌
+        function generatePoem() {
+            const phone = document.getElementById('phone').value.trim();
+            const customText = document.getElementById('customText').value.trim();
+
+            // 验证手机号
+            if (!phone) {
+                alert('请输入手机号！');
+                return;
+            }
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                alert('请输入正确的手机号！');
+                return;
+            }
+
+            if (selectedElements.length === 0 && !customText) {
+                alert('请至少选择一个重阳元素或输入自定义内容！');
+                return;
+            }
+
+            // 显示加载页面
+            showPage('loadingPoem');
+
+            // 模拟AI生成过程
+            const loadingTexts = [
+                '正在分析创作元素...',
+                '正在构思诗歌意境...',
+                '正在雕琢诗句韵律...',
+                '正在添加重阳情怀...',
+                '创作完成！'
+            ];
+
+            let step = 0;
+            const loadingInterval = setInterval(() => {
+                if (step < loadingTexts.length) {
+                    document.getElementById('loadingPoemText').textContent = loadingTexts[step];
+                    step++;
+                } else {
+                    clearInterval(loadingInterval);
+                    finishPoemGeneration(phone, customText);
+                }
+            }, 800);
+        }
+
+        // 完成诗歌生成
+        function finishPoemGeneration(phone, customText) {
+            // AI诗歌生成（模拟）
+            const poemTemplates = [
+                {
+                    title: '重阳登高',
+                    verses: [
+                        '九九登高望远山，',
+                        '秋风萧瑟叶飘然。',
+                        '手持茱萸思故里，',
+                        '遥寄亲情到云边。'
+                    ],
+                    keywords: '秋天山峰，金黄菊花，古典山水画，中国风，暖色调'
+                },
+                {
+                    title: '菊花香',
+                    verses: [
+                        '金菊绽放满庭芳，',
+                        '重阳佳节倍思乡。',
+                        '举杯遥祝亲人健，',
+                        '但愿长安共此光。'
+                    ],
+                    keywords: '盛开的金色菊花，中式庭院，秋天，温馨氛围，中国画风格'
+                },
+                {
+                    title: '敬老情深',
+                    verses: [
+                        '重阳佳节寄深情，',
+                        '敬老尊贤代代承。',
+                        '团圆时刻心相聚，',
+                        '天伦之乐暖人心。'
+                    ],
+                    keywords: '温馨家庭聚会，祖孙三代，菊花茶，传统中式客厅，温暖色调'
+                },
+                {
+                    title: '秋思',
+                    verses: [
+                        '明月高悬照九州，',
+                        '秋风送爽上高楼。',
+                        '遍插茱萸少一人，',
+                        '他乡游子泪双流。'
+                    ],
+                    keywords: '明月，古典高楼，秋天夜晚，茱萸，思乡意境，中国水墨画风格'
+                }
+            ];
+
+            // 根据选择的元素选择诗歌模板
+            let selectedTemplate = poemTemplates[Math.floor(Math.random() * poemTemplates.length)];
+
+            currentPoem = {
+                phone: phone,
+                title: selectedTemplate.title,
+                verses: selectedTemplate.verses,
+                elements: selectedElements,
+                customText: customText,
+                createTime: new Date().toLocaleString('zh-CN')
+            };
+
+            imageKeywords = selectedTemplate.keywords;
+
+            // 显示诗歌和关键词
+            displayPoemStep2();
+        }
+
+        // 步骤2: 显示诗歌
+        function displayPoemStep2() {
+            document.getElementById('poemTitle').textContent = currentPoem.title;
+            document.getElementById('imageKeywords').textContent = imageKeywords;
+            
+            const poemTextDiv = document.getElementById('poemText');
+            poemTextDiv.innerHTML = '';
+            
+            currentPoem.verses.forEach((verse, index) => {
+                const verseDiv = document.createElement('div');
+                verseDiv.className = 'poem-verse';
+                verseDiv.textContent = verse;
+                poemTextDiv.appendChild(verseDiv);
+            });
+
+            updateStepIndicator(2);
+            showPage('step2');
+        }
+
+        // 步骤2: 生成AI图片
+        function generateAIImage() {
+            showPage('loadingImage');
+
+            const loadingTexts = [
+                '正在分析诗歌意境...',
+                '正在构建视觉元素...',
+                '正在绘制AI图片...',
+                '正在优化画面效果...',
+                '图片生成完成！'
+            ];
+
+            let step = 0;
+            const loadingInterval = setInterval(() => {
+                if (step < loadingTexts.length) {
+                    document.getElementById('loadingImageText').textContent = loadingTexts[step];
+                    step++;
+                } else {
+                    clearInterval(loadingInterval);
+                    finishImageGeneration();
+                }
+            }, 1000);
+        }
+
+        // 完成图片生成
+        function finishImageGeneration() {
+            // 模拟AI图片（使用渐变色作为占位）
+            const gradients = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+            ];
+
+            const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+            
+            currentImage = {
+                type: 'gradient',
+                value: randomGradient,
+                keywords: imageKeywords
+            };
+
+            displayImageStep3();
+        }
+
+        // 步骤3: 显示图片
+        function displayImageStep3() {
+            const previewDiv = document.getElementById('aiImagePreview');
+            previewDiv.style.background = currentImage.value;
+            
+            // 添加装饰文字
+            previewDiv.innerHTML = `
+                <div style="text-align: center; color: white; text-shadow: 2px 2px 8px rgba(0,0,0,0.3);">
+                    <div style="font-size: 60px; margin-bottom: 10px;">🌼</div>
+                    <div style="font-family: 'Noto Serif SC', serif; font-size: 24px; letter-spacing: 3px;">
+                        ${currentPoem.title}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('poemTitle2').textContent = currentPoem.title;
+            
+            const poemTextDiv2 = document.getElementById('poemText2');
+            poemTextDiv2.innerHTML = '';
+            
+            currentPoem.verses.forEach((verse, index) => {
+                const verseDiv = document.createElement('div');
+                verseDiv.className = 'poem-verse';
+                verseDiv.textContent = verse;
+                poemTextDiv2.appendChild(verseDiv);
+            });
+
+            updateStepIndicator(3);
+            showPage('step3');
+        }
+
+        // 步骤3: 生成分享页面
+        function generateSharePage() {
+            // 准备分享内容
+            document.getElementById('shareTitle').textContent = currentPoem.title;
+            document.getElementById('sharePoemText').textContent = currentPoem.verses.join('\n');
+            document.getElementById('sharePhone').textContent = currentPoem.phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2');
+            document.getElementById('shareTime').textContent = currentPoem.createTime;
+
+            // 设置背景
+            const shareImageBg = document.getElementById('shareImageBg');
+            const shareImageContainer = shareImageBg.parentElement;
+            shareImageContainer.style.background = currentImage.value;
+
+            showPage('step4');
+        }
+
+        // 保存分享图片
+        function downloadShareImage() {
+            alert('💡 提示：在真实应用中，这里会将分享卡片生成为图片并下载。\n\n您可以使用截图工具保存当前分享卡片！');
+        }
+
+        // 复制分享链接
+        function copyShareLink() {
+            const shareUrl = window.location.origin + window.location.pathname + '?share=' + Date.now();
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    alert('✅ 分享链接已复制到剪贴板！\n\n' + shareUrl);
+                });
+            } else {
+                alert('📎 分享链接：\n' + shareUrl);
+            }
+        }
+
+        // 返回步骤1
+        function backToStep1() {
+            if (confirm('确定要重新创作吗？当前诗歌将被清空。')) {
+                updateStepIndicator(1);
+                showPage('step1');
+            }
+        }
+
+        // 重新生成图片
+        function regenerateImage() {
+            if (confirm('确定要重新生成图片吗？')) {
+                generateAIImage();
+            }
+        }
+
+        // 创建新诗歌
+        function createNewPoem() {
+            // 清空表单
+            document.getElementById('phone').value = '';
+            document.getElementById('customText').value = '';
+            
+            // 取消所有标签选择
+            document.querySelectorAll('.tag').forEach(tag => {
+                tag.classList.remove('selected');
+            });
+            
+            selectedElements = [];
+            currentPoem = null;
+            currentImage = null;
+            imageKeywords = '';
+            
+            updateStepIndicator(1);
+            showPage('step1');
+        }
+    </script>
+</body>
+</html>

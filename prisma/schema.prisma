@@ -38,3 +38,41 @@ model PhotoRestoreRecord {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
+
+model PoemRecord {
+  id             Int      @id @default(autoincrement())
+
+  // 用户手机号
+  phone          String   @db.VarChar(20)
+
+  // 诗歌标题
+  title          String   @db.VarChar(100)
+
+  // 诗歌内容
+  content        String   @db.Text
+
+  // 用户选择的重阳元素
+  elements       String?  @db.Text
+
+  // 用户自定义内容
+  customText     String?  @db.Text
+
+  // AI生成的图片URL
+  imageUrl       String?  @db.Text
+
+  // 图片关键词
+  imageKeywords  String?  @db.Text
+
+  // 任务状态：pending / processing / success / failed
+  status         String   @default("pending")
+
+  // DeepSeek 请求ID（可选）
+  requestId      String?  @db.VarChar(128)
+
+  // DeepSeek 响应 JSON（可选，用于调试或日志）
+  responseJson   Json?
+
+  // 创建时间、更新时间
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

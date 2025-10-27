@@ -73,7 +73,8 @@ export async function POST(request: Request) {
 
     const phone = parseResult.data;
 
-    if (!(imageFile instanceof File)) {
+    // 检查是否为有效的文件对象
+    if (!imageFile || typeof imageFile !== 'object' || !('stream' in imageFile) || !('name' in imageFile)) {
       return NextResponse.json(
         { success: false, error: "请上传需要修复的照片" },
         { status: 400 }
