@@ -89,19 +89,63 @@ export default function Home() {
     }
   };
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
 
-    const nextFile = event.target.files?.[0] ?? null;
-    setFile(nextFile);
+    const selectedFile = event.target.files?.[0] ?? null;
+    
+    if (!selectedFile) {
+      setFile(null);
+      setPreviewUrl(null);
+      return;
+    }
 
-    if (nextFile) {
-      const objectUrl = URL.createObjectURL(nextFile);
+    let processedFile = selectedFile;
+
+    // 检查是否为HEIC/HEIF格式，如果是则先转换
+    if (selectedFile.name.toLowerCase().match(/\.(heic|heif)$/i) || 
+        selectedFile.type === 'image/heic' || 
+        selectedFile.type === 'image/heif') {
+      try {
+        setMessage("正在转换HEIC格式...");
+        
+        // 动态导入heic2any
+        const heic2any = (await import('heic2any')).default;
+        const convertedBlob = await heic2any({
+          blob: selectedFile,
+          toType: 'image/jpeg',
+          quality: 0.95
+        });
+
+        // heic2any可能返回单个Blob或Blob数组
+        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+        processedFile = new File([blob], selectedFile.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+          type: 'image/jpeg'
+        });
+        
+        setMessage("HEIC格式转换完成");
+      } catch (error) {
+        console.error('HEIC转换失败:', error);
+        setMessage("HEIC格式转换失败，请尝试其他格式的图片");
+        setStage("error");
+        return;
+      }
+    }
+
+    setFile(processedFile);
+
+    if (processedFile) {
+      const objectUrl = URL.createObjectURL(processedFile);
       setPreviewUrl(objectUrl);
     } else {
       setPreviewUrl(null);
+    }
+    
+    // 清除转换提示信息
+    if (message && message.includes("转换")) {
+      setTimeout(() => setMessage(null), 2000);
     }
   };
 
