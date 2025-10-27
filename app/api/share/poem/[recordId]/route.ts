@@ -6,10 +6,11 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   request: Request,
-  { params }: { params: { recordId: string } }
+  { params }: { params: Promise<{ recordId: string }> }
 ) {
   try {
-    const recordId = parseInt(params.recordId);
+    const { recordId: recordIdParam } = await params;
+    const recordId = parseInt(recordIdParam);
 
     if (isNaN(recordId)) {
       return NextResponse.json(
