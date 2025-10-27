@@ -242,7 +242,7 @@ export default function Home() {
                   onChange={(event) => setPhone(event.target.value)}
                   className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base shadow-sm outline-none ring-indigo-400 transition focus:border-indigo-400 focus:ring-2"
                   autoComplete="tel"
-                  inputMode="tel"
+                  inputMode="numeric"
                 />
               </div>
 
