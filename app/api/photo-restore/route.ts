@@ -52,9 +52,8 @@ export async function POST(request: Request) {
   let originalUrl: string | null = null;
 
   try {
-    const formData = await request.formData();
-    const phoneRaw = formData.get("phone");
-    const imageFile = formData.get("image");
+    const body = await request.json();
+    const { phone: phoneRaw, imageUrl } = body;
 
     if (typeof phoneRaw !== "string") {
       return NextResponse.json(
@@ -73,86 +72,16 @@ export async function POST(request: Request) {
 
     const phone = parseResult.data;
 
-    // 检查是否为有效的文件对象
-    if (!imageFile || typeof imageFile !== 'object' || !('stream' in imageFile) || !('name' in imageFile)) {
+    if (typeof imageUrl !== "string" || !imageUrl.trim()) {
       return NextResponse.json(
-        { success: false, error: "请上传需要修复的照片" },
+        { success: false, error: "请提供有效的图片URL" },
         { status: 400 }
       );
     }
 
-    if (imageFile.size === 0) {
-      return NextResponse.json(
-        { success: false, error: "上传的文件为空" },
-        { status: 400 }
-      );
-    }
-
-    if (imageFile.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        { success: false, error: "图片大小不能超过15MB" },
-        { status: 400 }
-      );
-    }
-
-    const mimeType = imageFile.type || "image/jpeg";
-    const extension = ACCEPTED_MIME_TYPES[mimeType] ?? getExtensionFromName(imageFile.name);
-
-    if (!ACCEPTED_MIME_TYPES[mimeType] && !["jpg", "jpeg", "png", "webp", "heic", "heif"].includes(extension)) {
-      return NextResponse.json(
-        { success: false, error: "请上传 JPG、PNG、WebP、HEIC 或 HEIF 格式的图片" },
-        { status: 400 }
-      );
-    }
-
-    const arrayBuffer = await imageFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    if (buffer.length === 0) {
-      return NextResponse.json(
-        { success: false, error: "上传的文件无法读取" },
-        { status: 400 }
-      );
-    }
+    originalUrl = imageUrl.trim();
 
     const projectPrefix = makeProjectPrefix(phone);
-    
-    // 检查是否需要转换格式
-    let finalBuffer = buffer;
-    let finalExtension = extension;
-    let finalMimeType = mimeType;
-    
-    if (!DOUBAO_SUPPORTED_FORMATS.includes(extension)) {
-      console.log(`🔄 转换图片格式 ${extension} -> png (doubao-seedream API 要求)`);
-      
-      try {
-        // 转换为 PNG 格式
-        finalBuffer = Buffer.from(await sharp(buffer)
-          .png({ quality: 95, compressionLevel: 6 })
-          .toBuffer());
-        finalExtension = "png";
-        finalMimeType = "image/png";
-        
-        console.log(`✅ 图片格式转换成功: ${extension} -> png`);
-      } catch (error) {
-        console.error("❌ 图片格式转换失败:", error);
-        return NextResponse.json(
-          { success: false, error: "图片格式转换失败，请尝试上传 JPG 或 PNG 格式的图片" },
-          { status: 400 }
-        );
-      }
-    }
-
-    const originalKey = `${projectPrefix}/original.${finalExtension}`;
-
-    await ossImageManager.getOSSClient().put(originalKey, finalBuffer, {
-      headers: {
-        "Content-Type": finalMimeType,
-        "Cache-Control": "public, max-age=31536000",
-      },
-    });
-
-    originalUrl = ossImageManager.generateSignedImageUrl(originalKey, 30);
 
     const createdRecord = await prisma.photoRestoreRecord.create({
       data: {
