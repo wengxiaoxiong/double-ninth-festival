@@ -94,11 +94,13 @@ export default function Home() {
       URL.revokeObjectURL(previewUrl);
     }
 
-    const selectedFile = event.target.files?.[0] ?? null;
-    
+    const input = event.currentTarget;
+    const selectedFile = input.files?.[0] ?? null;
+
     if (!selectedFile) {
       setFile(null);
       setPreviewUrl(null);
+      input.value = "";
       return;
     }
 
@@ -130,6 +132,7 @@ export default function Home() {
         console.error('HEIC转换失败:', error);
         setMessage("HEIC格式转换失败，请尝试其他格式的图片");
         setStage("error");
+        input.value = "";
         return;
       }
     }
@@ -142,11 +145,13 @@ export default function Home() {
     } else {
       setPreviewUrl(null);
     }
-    
+
     // 清除转换提示信息
     if (message && message.includes("转换")) {
       setTimeout(() => setMessage(null), 2000);
     }
+
+    input.value = "";
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -387,10 +392,18 @@ export default function Home() {
                     </div>
                   </div>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const shareUrl = `${window.location.origin}/share/${result.recordId}`;
-                      navigator.clipboard.writeText(shareUrl);
-                      alert('分享链接已复制到剪贴板！');
+                      try {
+                        if (!navigator.clipboard) {
+                          throw new Error("clipboard API not available");
+                        }
+                        await navigator.clipboard.writeText(shareUrl);
+                        alert('分享链接已复制到剪贴板！');
+                      } catch (error) {
+                        console.error('复制链接失败:', error);
+                        alert('复制失败，请手动复制链接');
+                      }
                     }}
                     className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-orange-600"
                   >
@@ -467,10 +480,18 @@ export default function Home() {
                           下载
                         </a>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             const shareUrl = `${window.location.origin}/share/${record.id}`;
-                            navigator.clipboard.writeText(shareUrl);
-                            alert('分享链接已复制！');
+                            try {
+                              if (!navigator.clipboard) {
+                                throw new Error("clipboard API not available");
+                              }
+                              await navigator.clipboard.writeText(shareUrl);
+                              alert('分享链接已复制！');
+                            } catch (error) {
+                              console.error('复制链接失败:', error);
+                              alert('复制失败，请手动复制链接');
+                            }
                           }}
                           className="flex-1 rounded-lg bg-orange-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-orange-600"
                         >
