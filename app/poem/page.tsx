@@ -185,6 +185,8 @@ export default function PoemPage() {
               body: JSON.stringify({
                 recordId: payload.data.recordId,
                 keywords: payload.data.imageKeywords,
+                title: payload.data.title,
+                content: payload.data.content,
               }),
             });
 
