@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 
 type RequestStage = "idle" | "uploading" | "processing" | "done" | "error";
@@ -22,13 +22,6 @@ type HistoryRecord = {
 };
 
 
-const stageToIndex: Record<RequestStage, number> = {
-  idle: 0,
-  uploading: 0,
-  processing: 1,
-  done: 2,
-  error: 2,
-};
 
 export default function Home() {
   const [phone, setPhone] = useState("");
@@ -50,7 +43,6 @@ export default function Home() {
     };
   }, [previewUrl]);
 
-  const activeStepIndex = useMemo(() => stageToIndex[stage] ?? 0, [stage]);
 
   const handleQueryHistory = async () => {
     if (!phone.trim()) {
@@ -81,7 +73,7 @@ export default function Home() {
       setShowHistory(true);
       setMessage(data.data.records.length > 0 ? `找到 ${data.data.records.length} 条修图记录` : "暂无修图记录");
       setStage(data.data.records.length > 0 ? "done" : "error");
-    } catch (error) {
+    } catch {
       setMessage("查询失败，请稍后再试");
       setStage("error");
     } finally {
@@ -90,64 +82,90 @@ export default function Home() {
   };
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
-
-    const selectedFile = event.target.files?.[0] ?? null;
-    
-    if (!selectedFile) {
-      setFile(null);
-      setPreviewUrl(null);
-      return;
-    }
-
-    let processedFile = selectedFile;
-
-    // 检查是否为HEIC/HEIF格式，如果是则先转换
-    if (selectedFile.name.toLowerCase().match(/\.(heic|heif)$/i) || 
-        selectedFile.type === 'image/heic' || 
-        selectedFile.type === 'image/heif') {
-      try {
-        setMessage("正在转换HEIC格式...");
-        
-        // 动态导入heic2any
-        const heic2any = (await import('heic2any')).default;
-        const convertedBlob = await heic2any({
-          blob: selectedFile,
-          toType: 'image/jpeg',
-          quality: 0.95
-        });
-
-        // heic2any可能返回单个Blob或Blob数组
-        const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-        processedFile = new File([blob], selectedFile.name.replace(/\.(heic|heif)$/i, '.jpg'), {
-          type: 'image/jpeg'
-        });
-        
-        setMessage("HEIC格式转换完成");
-      } catch (error) {
-        console.error('HEIC转换失败:', error);
-        setMessage("HEIC格式转换失败，请尝试其他格式的图片");
-        setStage("error");
+    try {
+      const input = event.target;
+      const selectedFile = input.files?.[0];
+      if (!selectedFile) {
+        setMessage("未选择文件");
         return;
       }
-    }
-
-    setFile(processedFile);
-
-    if (processedFile) {
-      const objectUrl = URL.createObjectURL(processedFile);
-      setPreviewUrl(objectUrl);
-    } else {
-      setPreviewUrl(null);
-    }
-    
-    // 清除转换提示信息
-    if (message && message.includes("转换")) {
-      setTimeout(() => setMessage(null), 2000);
+  
+      // 检查文件类型
+      const validExt = /\.(png|jpg|jpeg|gif|bmp|tiff|webp|heic|heif|avif)$/i;
+      if (!selectedFile.type.startsWith("image/") && !validExt.test(selectedFile.name)) {
+        setMessage("请选择有效的图片文件");
+        return;
+      }
+  
+      let finalFile: File | Blob = selectedFile;
+  
+      // Safari兼容：HEIC/HEIF转换
+      if (/\.(heic|heif)$/i.test(selectedFile.name)) {
+        try {
+          setMessage("正在转换HEIC格式...");
+          const heic2any = (await import("heic2any")).default;
+          
+          // 确保blob格式正确
+          const convertOptions = {
+            blob: selectedFile,
+            toType: "image/jpeg" as const,
+            quality: 0.95,
+          };
+          
+          const blob = await heic2any(convertOptions);
+          const converted = Array.isArray(blob) ? blob[0] : blob;
+          
+          // Safari兼容的File对象创建
+          const newFileName = selectedFile.name.replace(/\.(heic|heif)$/i, ".jpg");
+          
+          if (typeof File !== "undefined") {
+            try {
+              finalFile = new File([converted], newFileName, {
+                type: "image/jpeg",
+              });
+            } catch {
+              // Safari fallback: 创建类File对象
+              finalFile = new Blob([converted], { type: "image/jpeg" });
+              Object.defineProperty(finalFile, 'name', {
+                value: newFileName,
+                writable: false
+              });
+            }
+          } else {
+            // 如果File构造函数不存在
+            finalFile = new Blob([converted], { type: "image/jpeg" });
+            Object.defineProperty(finalFile, 'name', {
+              value: newFileName,
+              writable: false
+            });
+          }
+          
+          setMessage("HEIC格式已转换完成");
+        } catch (err) {
+          console.error("HEIC 转换失败:", err);
+          setMessage(`HEIC转换失败: ${err instanceof Error ? err.message : '未知错误'}，请尝试上传JPG或PNG`);
+          return;
+        }
+      }
+  
+      // 生成预览URL（Safari中安全）
+      try {
+        const url = URL.createObjectURL(finalFile);
+        setPreviewUrl(url);
+        setFile(finalFile as File);
+      } catch (err) {
+        console.error("创建预览URL失败:", err);
+        setMessage("预览生成失败，但文件已选择");
+        setFile(finalFile as File);
+      }
+    } finally {
+      // Safari中不允许直接清空input.value
+      if (event.target && typeof event.target.blur === "function") {
+        event.target.blur();
+      }
     }
   };
+  
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -169,21 +187,40 @@ export default function Home() {
     setMessage(null);
     setResult(null);
 
-    const formData = new FormData();
-    formData.append("phone", phone.trim());
-    formData.append("image", file);
-
     try {
-      const response = await fetch("/api/photo-restore", {
-        method: "POST",
-        body: formData,
+      // 第一步：上传文件
+      const uploadFormData = new FormData();
+      uploadFormData.append("phone", phone.trim());
+      uploadFormData.append("image", file);
+
+      const uploadResponse = await fetch("/api/upload", {
+        method: 'POST',
+        body: uploadFormData,
       });
+
+      const uploadData = await uploadResponse.json();
+
+      if (!uploadResponse.ok) {
+        throw new Error(uploadData.error || '图片上传失败');
+      }
 
       setStage("processing");
 
-      const payload = await response.json();
+      // 第二步：调用修复API
+      const restoreResponse = await fetch("/api/photo-restore", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phone.trim(),
+          imageUrl: uploadData.url,
+        }),
+      });
 
-      if (!response.ok || !payload.success) {
+      const payload = await restoreResponse.json();
+
+      if (!restoreResponse.ok || !payload.success) {
         throw new Error(payload.error || "修复失败，请稍后再试");
       }
 
@@ -275,10 +312,13 @@ export default function Home() {
                   )}
                   <input
                     id="image"
-                    name="image"
                     type="file"
-                    accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                    accept="image/*,.heic,.heif,.jpg,.jpeg,.png,.webp"
                     className="hidden"
+                    onClick={(e) => {
+                      // Safari fix: 允许重复选择同一文件
+                      (e.target as HTMLInputElement).value = "";
+                    }}
                     onChange={handleFileChange}
                   />
                 </label>
@@ -387,10 +427,18 @@ export default function Home() {
                     </div>
                   </div>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const shareUrl = `${window.location.origin}/share/${result.recordId}`;
-                      navigator.clipboard.writeText(shareUrl);
-                      alert('分享链接已复制到剪贴板！');
+                      try {
+                        if (!navigator.clipboard) {
+                          throw new Error("clipboard API not available");
+                        }
+                        await navigator.clipboard.writeText(shareUrl);
+                        alert('分享链接已复制到剪贴板！');
+                      } catch (error) {
+                        console.error('复制链接失败:', error);
+                        alert('复制失败，请手动复制链接');
+                      }
                     }}
                     className="flex items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-orange-600"
                   >
@@ -467,10 +515,18 @@ export default function Home() {
                           下载
                         </a>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             const shareUrl = `${window.location.origin}/share/${record.id}`;
-                            navigator.clipboard.writeText(shareUrl);
-                            alert('分享链接已复制！');
+                            try {
+                              if (!navigator.clipboard) {
+                                throw new Error("clipboard API not available");
+                              }
+                              await navigator.clipboard.writeText(shareUrl);
+                              alert('分享链接已复制！');
+                            } catch (error) {
+                              console.error('复制链接失败:', error);
+                              alert('复制失败，请手动复制链接');
+                            }
                           }}
                           className="flex-1 rounded-lg bg-orange-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-orange-600"
                         >

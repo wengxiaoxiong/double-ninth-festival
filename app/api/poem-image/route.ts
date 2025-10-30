@@ -10,14 +10,28 @@ export const dynamic = "force-dynamic";
 const imageRequestSchema = z.object({
   recordId: z.number(),
   keywords: z.string(),
+  title: z.string().optional(),
+  content: z.string().optional(),
 });
 
 // 构建重阳节诗歌配图的专用Prompt
-function buildPoemImagePrompt(keywords: string): string {
+function buildPoemImagePrompt(keywords: string, title?: string, content?: string): string {
   const basePrompt = "中国风古典画，重阳节主题，诗情画意，细腻笔触，高品质";
   const chongyangElements = "金黄菊花，秋天山峰，古典建筑，茱萸，温暖色调";
   
-  return `${keywords}，${chongyangElements}，${basePrompt}，水墨画风格，意境深远，艺术感强`;
+  let prompt = `${keywords}，${chongyangElements}，${basePrompt}，水墨画风格，意境深远，艺术感强`;
+  
+  // 如果有诗词标题，加入到提示词中
+  if (title) {
+    prompt = `标题：${title}，${prompt}`;
+  }
+  
+  // 如果有诗词内容，提取关键意象加入到提示词中
+  if (content) {
+    prompt = `内容：${content}，${prompt}`;
+  }
+  
+  return prompt;
 }
 
 export async function POST(request: Request) {
@@ -32,7 +46,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { recordId, keywords } = parseResult.data;
+    const { recordId, keywords, title, content } = parseResult.data;
 
     // 检查记录是否存在
     const existingRecord = await prisma.poemRecord.findUnique({
@@ -47,7 +61,7 @@ export async function POST(request: Request) {
     }
 
     // 构建专用于诗歌的图片生成Prompt
-    const enhancedPrompt = buildPoemImagePrompt(keywords);
+    const enhancedPrompt = buildPoemImagePrompt(keywords, title, content);
 
     // 生成项目前缀
     const projectPrefix = `poem/${existingRecord.phone.replace(/[^0-9]/g, "")}/${recordId}`;
